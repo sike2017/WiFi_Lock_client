@@ -2,8 +2,9 @@ from descriptor import InstructionModel, InstructionParam, ALL_INSTRUCTIONS, ALL
 import view2
 import communicity
 from settings import PACKAGE_SIZE, BYTEORDER
-from utillity import getRequestCommandNameByFlag, getResponseHeaderNameByFlag
+from utillity import getRequestCommandNameByFlag, getResponseHeaderNameByFlag, printException
 from socket import timeout
+from custom_exception import InvalidId, CustomException
 
 class Connecter:
     connectionTable = {}
@@ -23,6 +24,10 @@ class Connecter:
         self.connect(instructions.deluser, view2.viewDelUesr)
         self.connect(instructions.openlock, view2.viewOpenLock)
         self.connect(instructions.closelock, view2.viewCloseLock)
+        self.connect(instructions.addguest, view2.viewAddGuest)
+        self.connect(instructions.gopenlock, view2.viewGuestOpenLock)
+        self.connect(instructions.gcloselock, view2.viewGuestCloseLock)
+        self.connect(instructions.setwifi, view2.viewSetWiFi)
 
     def connect(self, instructionModel, func):
         self.connectionTable[instructionModel.name] = func
@@ -54,10 +59,16 @@ class Runner:
         try:
             viewResult = self.connecter.func(value)(argList)
         except timeout as e:
-            print(e)
+            printException(e)
             return False
         except OSError as e:
-            print(e)
+            printException(e)
+            return False
+        except ValueError as e:
+            printException(e)
+            return False
+        except CustomException as e:
+            printException(e)
             return False
 
         if isinstance(viewResult, view2.ViewRemoteResult):

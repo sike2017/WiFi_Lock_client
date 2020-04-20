@@ -1,8 +1,10 @@
 from descriptor import ALL_COMMANDS, ALL_RESPONSE_HEADERS
 from communicity import Request, Communicity, Package, Response
-from settings import PACKAGE_SIZE, USER_ID_SIZE
+from settings import PACKAGE_SIZE, USER_ID_SIZE, IP, TCP_PORT, NVS_KEY_MAX_SIZE
 from model import User, JsonStorage
-from custom_exception import InvalidId
+from custom_exception import InvalidId, CustomValueError
+from utillity import paddingBytes
+import time
 
 class ViewResult:
     pass
@@ -43,7 +45,14 @@ def sendRequest(request: Request) -> ViewRemoteResult:
     return result
 
 def viewConnect(argList) -> ViewLocalResult:
-    Communicity().connect()
+    ip = IP
+    port = TCP_PORT
+    if len(argList) != 0:
+        textList = argList[0].split(":")
+        ip = textList[0]
+        if (len(textList) == 2):
+            port = int(textList[1])
+    Communicity().connect(ip, port)
     return ViewLocalResult("connected")
 
 def viewDisconnect(argList) -> ViewLocalResult:
@@ -62,7 +71,8 @@ def viewInit(argList) -> ViewRemoteResult:
     response = result.getResponse()
     if response.isOk():
         JsonStorage.initJsonFile()
-        user = User(response.args[0:USER_ID_SIZE])
+        user = User(response.args[0:USER_ID_SIZE], 
+                    response.args[USER_ID_SIZE : USER_ID_SIZE+NVS_KEY_MAX_SIZE])
         user.add()
     return result
 
@@ -72,7 +82,8 @@ def viewAddUser(argList) -> ViewRemoteResult:
     result = sendRequest(request)
     response = result.getResponse()
     if response.isOk():
-        user = User(response.args[0:USER_ID_SIZE])
+        user = User(response.args[0 : USER_ID_SIZE], 
+                    response.args[USER_ID_SIZE : USER_ID_SIZE+NVS_KEY_MAX_SIZE])
         user.add()
     return result
 
@@ -96,8 +107,45 @@ def viewOpenLock(argList) -> ViewRemoteResult:
     result = sendRequest(request)
     return result
 
-def viewCloseLock(argList):
+def viewCloseLock(argList) -> ViewRemoteResult:
     requestId = bytes.fromhex(argList[0])
     request = Request(commands.COMMAND_CLOSE_LOCK, requestId)
+    result = sendRequest(request)
+    return result
+
+def viewAddGuest(argList) -> ViewLocalResult:
+    requestId = bytes.fromhex(argList[0])
+    user = User.fromUserId(requestId)
+    if user is None:
+        raise InvalidId("user id %s is not exist" %(requestId.hex()))
+    try:
+        endTime = int(time.mktime(time.strptime(argList[1], "%Y-%m-%d_%H:%M")))
+    except ValueError as e:
+        raise CustomValueError(str(e))
+    guest = user.generateGuest(endTime)
+    user.addGuest(guest)
+    print("encrypt bytes: %s" %guest.encryptBytes)
+    return ViewLocalResult(str(guest.toJsonObject()))
+
+def viewGuestOpenLock(argList) -> ViewRemoteResult:
+    cipherData = bytes.fromhex(argList[0])
+    request = Request(commands.COMMAND_GUEST_OPEN_LOCK, cipherData)
+    result = sendRequest(request)
+    return result
+
+def viewGuestCloseLock(argList) -> ViewRemoteResult:
+    cipherData = bytes.fromhex(argList[0])
+    request = Request(commands.COMMAND_GUEST_CLOSE_LOCK, cipherData)
+    result = sendRequest(request)
+    return result
+
+def viewSetWiFi(argList) -> ViewRemoteResult:
+    requestId: bytes = bytes.fromhex(argList[0])
+    ssid: str = argList[1]
+    password: str = argList[2]
+    zero = bytes.fromhex("00")
+    requestBytes = requestId + ssid.encode("ascii") + zero + password.encode("ascii") + zero
+    
+    request = Request(commands.COMMAND_SET_WIFI, requestBytes)
     result = sendRequest(request)
     return result

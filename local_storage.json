@@ -1,7 +1,20 @@
 {
     "users":[
         {
-            "user_id":"2cb459b272022f09e0aa4ced3cf84ab2"
+            "user_id":"eaaa7c9ff154b9c0d14f985682857434",
+            "user_nvs_key":"user_00",
+            "guest_id_list":[]
+        },
+        {
+            "user_id":"fb58f27f478559a49e0f97e431c4464a",
+            "user_nvs_key":"user_01",
+            "guest_id_list":[
+                {
+                    "endTimestamp":"1606802400",
+                    "encryptBytes":"757365725f30310000000000000000002000000000000000893c1ec4d063e1d5cf2b19ff202bf65361794ec87e6e0ef05ba742928decaa63",
+                    "encryptBytesLength":32
+                }
+            ]
         }
     ]
 }

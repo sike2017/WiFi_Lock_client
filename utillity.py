@@ -1,10 +1,10 @@
 from descriptor import ALL_RESPONSE_HEADERS, ALL_COMMANDS
 
-def paddingBytes(s: bytes, n: int) -> bytes:
+def paddingBytes(s: bytes, blockSize: int) -> bytes:
     bytesLength = len(s)
-    if not bytesLength % n:
+    if not bytesLength % blockSize:
         return s
-    result = s + bytes(n - bytesLength % n)
+    result = s + bytes(blockSize - bytesLength % blockSize)
 
     return result
 
@@ -25,3 +25,6 @@ def getRequestCommandNameByFlag(flag: int):
         if commands.value(item) == flag:
             return item
     return None
+
+def printException(e: Exception):
+    print("Exception: %s" %repr(e))

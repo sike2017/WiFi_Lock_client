@@ -1,4 +1,4 @@
-from settings import PACKAGE_SIZE, BYTEORDER, RESERVED_BYTES_SIZE, IP, TCP_PORT
+from settings import PACKAGE_SIZE, BYTEORDER, RESERVED_BYTES_SIZE
 from custom_exception import PackageSizeOverflow, Unconnect
 from utillity import getResponseHeaderNameByFlag
 import socket
@@ -50,12 +50,10 @@ class Communicity:
     # def __init__(self):
     #     self.socket = None
 
-    def connect(self, ip = None) -> None:
+    def connect(self, ip, port) -> None:
         self.socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        if ip is None:
-            ip = IP
         self.socket.settimeout(10)
-        self.socket.connect((ip, TCP_PORT))
+        self.socket.connect((ip, port))
         print(self.socket)
 
     def send(self, data: Package, length) -> bytes:

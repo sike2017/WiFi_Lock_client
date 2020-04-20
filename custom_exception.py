@@ -16,3 +16,6 @@ class Unconnect(CustomException):
 
 class InvalidId(CustomException):
     pass
+
+class CustomValueError(CustomException):
+    pass

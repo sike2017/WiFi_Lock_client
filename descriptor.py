@@ -13,18 +13,17 @@ class ALL_ITEMS_BASE:
 class ALL_COMMANDS(ALL_ITEMS_BASE):
     # do not add any thing which is not a symbol of a command
     def __init__(self):
-        self.COMMAND_DISCONNECT = 0X01
-        self.COMMAND_OPEN_LOCK = 0X10
-        self.COMMAND_CLOSE_LOCK = 0X11
+        self.COMMAND_DISCONNECT = 0x01
+        self.COMMAND_OPEN_LOCK = 0x10
+        self.COMMAND_CLOSE_LOCK = 0x11
         self.COMMAND_ADD_USER = 0x20
-        self.COMMAND_DEL_USER = 0X21
-        self.COMMAND_RESET = 0x30
+        self.COMMAND_DEL_USER = 0x21
+        # self.COMMAND_RESET = 0x30
         self.COMMAND_PING = 0x40
-        self.COMMAND_INIT= 0x50
-        self.COMMAND_GUEST_UNLOCK = 0x60
-        self.COMMAND_GUEST_LOCK = 0x61
-        self.COMMAND_GUEST_ADD = 0x70
-        self.COMMAND_INVALID = 0xFF
+        self.COMMAND_INIT = 0x50
+        self.COMMAND_GUEST_OPEN_LOCK = 0x60
+        self.COMMAND_GUEST_CLOSE_LOCK = 0x61
+        self.COMMAND_SET_WIFI = 0x70
 
 class InstructionParam:
     def __init__(self, name, optional=False):
@@ -59,12 +58,15 @@ class ALL_INSTRUCTIONS(ALL_ITEMS_BASE):
         self.closelock = InstructionModel("close", ["request_id"], "close the lock")
         self.adduser = InstructionModel("adduser", ["request_id"], "create a new user")
         self.deluser = InstructionModel("deluser", ["request_id", "target_id"], "delete a user")
-        self.scan = InstructionModel("scan", text="scan for ap")
+        self.addguest = InstructionModel("addguest", ["request_id", "end_time_stamp"], "add a guest")
+        self.gopenlock = InstructionModel("gopenlock", ["cipher_data"], "guest open lock")
+        self.gcloselock = InstructionModel("gcloselock", ["cipher_data"], "guest close lock")
+        self.setwifi = InstructionModel("setwifi", ["request_id", "ssid", "password"], "set wifi")
 
 class ALL_RESPONSE_HEADERS(ALL_ITEMS_BASE):
     def __init__(self):
-        self.RESPONSE_HEADER_OK = 0X10
-        self.RESPONSE_HEADER_FAIL = 0X11
-        self.RESPONSE_HEADER_PING = 0X20
+        self.RESPONSE_HEADER_OK = 0x10
+        self.RESPONSE_HEADER_FAIL = 0x11
+        self.RESPONSE_HEADER_PING = 0x20
         # if receieved the invalid command, respond with RESPONSE_HEADER_INVALID
-        self.RESPONSE_HEADER_INVALID = 0XFF
+        self.RESPONSE_HEADER_INVALID = 0xFF
