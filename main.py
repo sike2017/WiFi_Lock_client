@@ -4,6 +4,8 @@ from descriptor import ALL_INSTRUCTIONS
 from control import Runner
 from custom_exception import Unconnect
 
+import socket
+
 runner = Runner()
 instructions = ALL_INSTRUCTIONS()
 
@@ -22,7 +24,11 @@ def commandLoop():
             elif text.startswith("disconnect"):
                 prompt = "> "
         except Unconnect as e:
-            print(e)
+            print(repr(e))
+            continue
+        except socket.timeout as e:
+            print(repr(e))
+            prompt = "> "
             continue
         except KeyboardInterrupt:
             continue    # Control - C pressed. Try again.

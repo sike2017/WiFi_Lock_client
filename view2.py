@@ -2,9 +2,13 @@ from descriptor import ALL_COMMANDS, ALL_RESPONSE_HEADERS
 from communicity import Request, Communicity, Package, Response
 from settings import PACKAGE_SIZE, USER_ID_SIZE, IP, TCP_PORT, NVS_KEY_MAX_SIZE
 from model import User, JsonStorage
-from custom_exception import InvalidId, CustomValueError
+from custom_exception import InvalidId, CustomValueError, CustomFileNotExist
 from utillity import paddingBytes
 import time
+import getpass
+import requests
+import Cryptodome
+import pathlib
 
 class ViewResult:
     pass
@@ -23,6 +27,13 @@ class ViewRemoteResult(ViewResult):
     
     def getResponse(self):
         return self.response
+
+class ViewHttpResult(ViewResult):
+    def __init__(self, raw: str):
+        self.raw = raw
+    
+    def getRaw(self):
+        return self.raw
 
 class ViewLocalResult(ViewResult):
     def __init__(self, msg):
@@ -142,10 +153,39 @@ def viewGuestCloseLock(argList) -> ViewRemoteResult:
 def viewSetWiFi(argList) -> ViewRemoteResult:
     requestId: bytes = bytes.fromhex(argList[0])
     ssid: str = argList[1]
-    password: str = argList[2]
+    password: str = ""
+    if len(argList) > 1:
+        password = argList[0]
+    else:
+        password = getpass.getpass("password: ")
     zero = bytes.fromhex("00")
     requestBytes = requestId + ssid.encode("ascii") + zero + password.encode("ascii") + zero
     
     request = Request(commands.COMMAND_SET_WIFI, requestBytes)
     result = sendRequest(request)
     return result
+
+def viewUpdateFirmware(argList) -> ViewHttpResult:
+    firmwareStrPath = argList[0]
+    password = ""
+    if len(argList) > 1:
+        password = argList[1]
+    else:
+        password = getpass.getpass("password: ")
+    firmwarePath = pathlib.Path(firmwareStrPath)
+    if not firmwarePath.exists():
+        raise CustomFileNotExist("%s is not exist" %(firmwarePath))
+    if not firmwarePath.is_file():
+        raise CustomValueError("fireware need to be a .bin file")
+    firmwareFile = open(firmwareStrPath, "rb")
+    files = {
+        "file": firmwareFile
+    }
+    headers = {
+        "password: %s" %(password)
+    }
+    retAddress = Communicity().getpeername()
+    ip = retAddress[0]
+    r = requests.post(ip, headers=headers, files=files)
+    print("ip: " %(ip))
+    return ViewHttpResult(r.raw)

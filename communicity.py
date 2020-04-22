@@ -66,6 +66,9 @@ class Communicity:
     def disconnect(self) -> None:
         if hasattr(self, "socket"):
             self.socket.close()
+    
+    def getpeername(self) -> (str, int):
+        return self.socket.getpeername()
 
 class Loading:
     def __init__(self, flag: int, b: bytes):

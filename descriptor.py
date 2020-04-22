@@ -61,7 +61,8 @@ class ALL_INSTRUCTIONS(ALL_ITEMS_BASE):
         self.addguest = InstructionModel("addguest", ["request_id", "end_time_stamp"], "add a guest")
         self.gopenlock = InstructionModel("gopenlock", ["cipher_data"], "guest open lock")
         self.gcloselock = InstructionModel("gcloselock", ["cipher_data"], "guest close lock")
-        self.setwifi = InstructionModel("setwifi", ["request_id", "ssid", "password"], "set wifi")
+        self.setwifi = InstructionModel("setwifi", ["request_id", "ssid", "optional_password"], "set wifi")
+        self.update_firmware = InstructionModel("update_firmware", ["firmware_path", "optional_password"], "update firmware")
 
 class ALL_RESPONSE_HEADERS(ALL_ITEMS_BASE):
     def __init__(self):

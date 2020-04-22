@@ -19,3 +19,6 @@ class InvalidId(CustomException):
 
 class CustomValueError(CustomException):
     pass
+
+class CustomFileNotExist(CustomException):
+    pass

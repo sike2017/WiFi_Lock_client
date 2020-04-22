@@ -58,12 +58,6 @@ class Runner:
         argList = textList[1:]
         try:
             viewResult = self.connecter.func(value)(argList)
-        except timeout as e:
-            printException(e)
-            return False
-        except OSError as e:
-            printException(e)
-            return False
         except ValueError as e:
             printException(e)
             return False
@@ -71,7 +65,7 @@ class Runner:
             printException(e)
             return False
 
-        if isinstance(viewResult, view2.ViewRemoteResult):
+        if isinstance(viewResult, view2.ViewRemoteResult) and not viewResult.isHttpConnection():
             package = viewResult.getSendPak()
 
             args = bytes()
@@ -105,6 +99,10 @@ response args: %s
             headerName,
             args))
 
-        else:
+        elif isinstance(viewResult, view2.ViewHttpResult):
+            print(viewResult.getRaw())
+
+        elif isinstance(viewResult, view2.ViewLocalResult):
             print(str(viewResult))
+
         return True
