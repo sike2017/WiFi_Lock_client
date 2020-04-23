@@ -42,7 +42,6 @@ class InstructionModel:
                     optional = False
                     prefix = OPTIONAL_COMMAND_PREFIX
                     if s.startswith(prefix):
-                        name = s[len(prefix)]
                         optional = True
                     self.paramList.append(InstructionParam(name, optional))
         if len(self.paramList) == 0:
@@ -59,12 +58,28 @@ class ALL_INSTRUCTIONS(ALL_ITEMS_BASE):
         self.closelock = InstructionModel("close", ["request_id"], "close the lock")
         self.adduser = InstructionModel("adduser", ["request_id"], "create a new user")
         self.deluser = InstructionModel("deluser", ["request_id", "target_id"], "delete a user")
-        self.addguest = InstructionModel("addguest", ["request_id", "end_time_stamp"], "add a guest")
+        self.addguest = InstructionModel("addguest", ["request_id", "end_timestamp_in_format_str"], "add a guest")
         self.gopenlock = InstructionModel("gopenlock", ["cipher_data"], "guest open lock")
         self.gcloselock = InstructionModel("gcloselock", ["cipher_data"], "guest close lock")
         self.setwifi = InstructionModel("setwifi", ["request_id", "ssid", "optional_password"], "set wifi")
         self.ota = InstructionModel("ota", ["password", "image", "optional_local_port"], "ota update by wifi")
         self.remote_version = InstructionModel("remote_version", [], "get remote version")
+
+        self.help = InstructionModel("help", [], "get help information")
+    
+    def getHelpInformation(self):
+        content = ""
+        for key in self.keys():
+            value = self.value(key)
+            paramNameList = []
+            for param in value.paramList:
+                if param.name.startswith(OPTIONAL_COMMAND_PREFIX):
+                    paramNameList.append("[%s]" %param.name)
+                else:
+                    paramNameList.append(param.name)
+            temp = "%s %s\n" %(value.name, " ".join(paramNameList))
+            content = content + temp
+        return content
 
 class ALL_RESPONSE_HEADERS(ALL_ITEMS_BASE):
     def __init__(self):

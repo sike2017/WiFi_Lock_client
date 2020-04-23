@@ -1,4 +1,4 @@
-from descriptor import ALL_COMMANDS, ALL_RESPONSE_HEADERS
+from descriptor import ALL_COMMANDS, ALL_RESPONSE_HEADERS, ALL_INSTRUCTIONS
 from communicity import Request, Communicity, Package, Response
 from settings import PACKAGE_SIZE, USER_ID_SIZE, IP, COMMAND_REMOTE_PORT, NVS_KEY_MAX_SIZE, OTA_LOCAL_PORT
 from model import User, JsonStorage
@@ -45,6 +45,8 @@ class ViewLocalResult(ViewResult):
 
 commands = ALL_COMMANDS()
 headers = ALL_RESPONSE_HEADERS()
+
+instructions = ALL_INSTRUCTIONS()
 
 def sendRequest(request: Request) -> ViewRemoteResult:
     # return (response, sendPackage, recvPackage)
@@ -131,7 +133,7 @@ def viewAddGuest(argList) -> ViewLocalResult:
     if user is None:
         raise InvalidId("user id %s is not exist" %(requestId.hex()))
     try:
-        endTime = int(time.mktime(time.strptime(argList[1], "%Y-%m-%d_%H:%M")))
+        endTime = int(time.mktime(time.strptime(argList[1], "%Y-%m-%d-%H:%M")))
     except ValueError as e:
         raise CustomValueError(str(e))
     guest = user.generateGuest(endTime)
@@ -197,3 +199,6 @@ def viewOTA(argList) -> ViewOTAResult:
         # ota success
         return ViewOTAResult("ota update success")
     return ViewOTAResult("ota update fail: %d" %otaResult)
+
+def viewHelp(argList) -> ViewLocalResult:
+    return ViewLocalResult(instructions.getHelpInformation())

@@ -31,6 +31,8 @@ class Connecter:
         self.connect(instructions.ota, view2.viewOTA)
         self.connect(instructions.remote_version, view2.viewVersion)
 
+        self.connect(instructions.help, view2.viewHelp)
+
     def connect(self, instructionModel, func):
         self.connectionTable[instructionModel.name] = func
     
