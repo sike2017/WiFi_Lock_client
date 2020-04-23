@@ -2,7 +2,7 @@ from settings import PACKAGE_SIZE, BYTEORDER, RESERVED_BYTES_SIZE
 from custom_exception import PackageSizeOverflow, Unconnect
 from utillity import getResponseHeaderNameByFlag
 import socket
-from descriptor import ALL_RESPONSE_HEADERS
+from descriptor import ALL_RESPONSE_HEADERS, ALL_COMMANDS
 
 class Package:
 
@@ -16,6 +16,7 @@ class Package:
     def fromLoading(cls, loading: bytes):
         # build a Package from loading
         # this function will full the reserved bytes
+        # the reserved bytes will be b'\00'
         r = Package()
         r.reservedBytes = b"\00"
         r.loading = loading
@@ -68,7 +69,18 @@ class Communicity:
             self.socket.close()
     
     def getpeername(self) -> (str, int):
+        # get remote (ip, port)
         return self.socket.getpeername()
+
+    def getsockname(self) -> (str, int):
+        # get local (ip, port)
+        return self.socket.getsockname()
+
+    def isConnected(self) -> bool:
+        r = self.send(Package.fromLoading(ALL_COMMANDS().COMMAND_PING), PACKAGE_SIZE)
+        if len(Package.fromBytes(r).loading) != 0:
+            return True
+        return False
 
 class Loading:
     def __init__(self, flag: int, b: bytes):

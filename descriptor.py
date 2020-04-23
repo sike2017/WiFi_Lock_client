@@ -24,6 +24,7 @@ class ALL_COMMANDS(ALL_ITEMS_BASE):
         self.COMMAND_GUEST_OPEN_LOCK = 0x60
         self.COMMAND_GUEST_CLOSE_LOCK = 0x61
         self.COMMAND_SET_WIFI = 0x70
+        self.COMMAND_VERSION = 0x80
 
 class InstructionParam:
     def __init__(self, name, optional=False):
@@ -62,7 +63,8 @@ class ALL_INSTRUCTIONS(ALL_ITEMS_BASE):
         self.gopenlock = InstructionModel("gopenlock", ["cipher_data"], "guest open lock")
         self.gcloselock = InstructionModel("gcloselock", ["cipher_data"], "guest close lock")
         self.setwifi = InstructionModel("setwifi", ["request_id", "ssid", "optional_password"], "set wifi")
-        self.update_firmware = InstructionModel("update_firmware", ["firmware_path", "optional_password"], "update firmware")
+        self.ota = InstructionModel("ota", ["password", "image", "optional_local_port"], "ota update by wifi")
+        self.remote_version = InstructionModel("remote_version", [], "get remote version")
 
 class ALL_RESPONSE_HEADERS(ALL_ITEMS_BASE):
     def __init__(self):

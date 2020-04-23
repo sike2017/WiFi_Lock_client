@@ -12,23 +12,18 @@ instructions = ALL_INSTRUCTIONS()
 def commandLoop():
     session = PromptSession()
     instruction_completer = WordCompleter(instructions.keys())
-    prompt = "> "
+    prompt = "$ "
     while True:
         try:
             text = session.prompt(prompt, completer=instruction_completer)
             if not runner.run(text):
                 # command execute error
                 continue
-            if text.startswith("connect"):
-                prompt = "% "
-            elif text.startswith("disconnect"):
-                prompt = "> "
         except Unconnect as e:
             print(repr(e))
             continue
         except socket.timeout as e:
             print(repr(e))
-            prompt = "> "
             continue
         except KeyboardInterrupt:
             continue    # Control - C pressed. Try again.

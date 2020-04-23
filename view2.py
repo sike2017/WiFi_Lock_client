@@ -1,6 +1,6 @@
 from descriptor import ALL_COMMANDS, ALL_RESPONSE_HEADERS
 from communicity import Request, Communicity, Package, Response
-from settings import PACKAGE_SIZE, USER_ID_SIZE, IP, TCP_PORT, NVS_KEY_MAX_SIZE
+from settings import PACKAGE_SIZE, USER_ID_SIZE, IP, COMMAND_REMOTE_PORT, NVS_KEY_MAX_SIZE, OTA_LOCAL_PORT
 from model import User, JsonStorage
 from custom_exception import InvalidId, CustomValueError, CustomFileNotExist
 from utillity import paddingBytes
@@ -9,6 +9,7 @@ import getpass
 import requests
 import Cryptodome
 import pathlib
+import espota
 
 class ViewResult:
     pass
@@ -28,12 +29,12 @@ class ViewRemoteResult(ViewResult):
     def getResponse(self):
         return self.response
 
-class ViewHttpResult(ViewResult):
-    def __init__(self, raw: str):
-        self.raw = raw
+class ViewOTAResult(ViewResult):
+    def __init__(self, msg: str):
+        self.msg = msg
     
-    def getRaw(self):
-        return self.raw
+    def __str__(self):
+        return self.msg
 
 class ViewLocalResult(ViewResult):
     def __init__(self, msg):
@@ -57,7 +58,7 @@ def sendRequest(request: Request) -> ViewRemoteResult:
 
 def viewConnect(argList) -> ViewLocalResult:
     ip = IP
-    port = TCP_PORT
+    port = COMMAND_REMOTE_PORT
     if len(argList) != 0:
         textList = argList[0].split(":")
         ip = textList[0]
@@ -154,7 +155,7 @@ def viewSetWiFi(argList) -> ViewRemoteResult:
     requestId: bytes = bytes.fromhex(argList[0])
     ssid: str = argList[1]
     password: str = ""
-    if len(argList) > 1:
+    if len(argList) > 2:
         password = argList[0]
     else:
         password = getpass.getpass("password: ")
@@ -165,27 +166,34 @@ def viewSetWiFi(argList) -> ViewRemoteResult:
     result = sendRequest(request)
     return result
 
-def viewUpdateFirmware(argList) -> ViewHttpResult:
-    firmwareStrPath = argList[0]
-    password = ""
-    if len(argList) > 1:
-        password = argList[1]
-    else:
-        password = getpass.getpass("password: ")
-    firmwarePath = pathlib.Path(firmwareStrPath)
-    if not firmwarePath.exists():
-        raise CustomFileNotExist("%s is not exist" %(firmwarePath))
-    if not firmwarePath.is_file():
-        raise CustomValueError("fireware need to be a .bin file")
-    firmwareFile = open(firmwareStrPath, "rb")
-    files = {
-        "file": firmwareFile
-    }
-    headers = {
-        "password: %s" %(password)
-    }
-    retAddress = Communicity().getpeername()
-    ip = retAddress[0]
-    r = requests.post(ip, headers=headers, files=files)
-    print("ip: " %(ip))
-    return ViewHttpResult(r.raw)
+def viewVersion(argList) -> ViewRemoteResult:
+    request = Request(commands.COMMAND_VERSION, b"")
+    result = sendRequest(request)
+    version = str(result.getResponse().args.split(b'\0')[0], encoding="utf-8")
+    print("remote version: %s" %version)
+    return result
+
+def viewOTA(argList) -> ViewOTAResult:
+    # check connection
+    pingReq = Request(commands.COMMAND_PING, b"")
+    sendRequest(pingReq) # if not connected, raise an Exception here
+
+    password = argList[0]
+    image = argList[1]
+    localPort = OTA_LOCAL_PORT
+    if len(argList) > 2:
+        localPort = int(argList[2])
+
+    localAddr = Communicity().getsockname()[0]
+    remoteAddr = Communicity().getpeername()[0]
+    remotePort = 3232
+
+    # check path
+    f = open(image, "rb")
+    f.close()
+    espota.TIMEOUT = 10 # Set time out in espota module. If you delete this, espota.server function will fail
+    otaResult = espota.serve(remoteAddr, localAddr, remotePort, localPort, password, image)
+    if otaResult == 0:
+        # ota success
+        return ViewOTAResult("ota update success")
+    return ViewOTAResult("ota update fail: %d" %otaResult)

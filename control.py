@@ -28,6 +28,8 @@ class Connecter:
         self.connect(instructions.gopenlock, view2.viewGuestOpenLock)
         self.connect(instructions.gcloselock, view2.viewGuestCloseLock)
         self.connect(instructions.setwifi, view2.viewSetWiFi)
+        self.connect(instructions.ota, view2.viewOTA)
+        self.connect(instructions.remote_version, view2.viewVersion)
 
     def connect(self, instructionModel, func):
         self.connectionTable[instructionModel.name] = func
@@ -58,6 +60,12 @@ class Runner:
         argList = textList[1:]
         try:
             viewResult = self.connecter.func(value)(argList)
+        except ConnectionError as e:
+            printException(e)
+            return False
+        except OSError as e:
+            printException(e)
+            return False
         except ValueError as e:
             printException(e)
             return False
@@ -65,7 +73,7 @@ class Runner:
             printException(e)
             return False
 
-        if isinstance(viewResult, view2.ViewRemoteResult) and not viewResult.isHttpConnection():
+        if isinstance(viewResult, view2.ViewRemoteResult):
             package = viewResult.getSendPak()
 
             args = bytes()
@@ -99,8 +107,8 @@ response args: %s
             headerName,
             args))
 
-        elif isinstance(viewResult, view2.ViewHttpResult):
-            print(viewResult.getRaw())
+        elif isinstance(viewResult, view2.ViewOTAResult):
+            print(str(viewResult))
 
         elif isinstance(viewResult, view2.ViewLocalResult):
             print(str(viewResult))

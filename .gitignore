@@ -1,3 +1,4 @@
 __pycache__/*
 lock_env/*
 local_storage.json
+*.bin
